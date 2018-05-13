@@ -1,0 +1,11 @@
+{
+  "name": "Three Tier Arch",
+  "stacks": [
+    {
+      "name": "ThreeTierArch-VPC",
+      "template_file": "./cloudformation/vpc/vpc_standard.yml",
+      "parameters_file": "./cloudformation/vpc/vpc_parameters_dev.json",
+      "dependencies": []
+    }
+  ]
+}

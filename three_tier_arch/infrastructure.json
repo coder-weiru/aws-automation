@@ -6,6 +6,41 @@
       "template_file": "./cloudformation/vpc/vpc_standard.yml",
       "parameters_file": "./cloudformation/vpc/vpc_parameters_dev.json",
       "dependencies": []
+    },
+    {
+      "name": "ThreeTierArch-ACM",
+      "template_file": "./cloudformation/acm/acm_standard.yml",
+      "parameters_file": "./cloudformation/acm/acm_parameters_dev.json",
+      "dependencies": []
+    },
+    {
+      "name": "ThreeTierArch-ELB",
+      "template_file": "./cloudformation/elb/elb_standard.yml",
+      "parameters_file": "./cloudformation/elb/elb_parameters_dev.json",
+      "dependencies": [
+        {
+          "stack": "ThreeTierArch-VPC",
+          "mapping": [
+            {
+              "output": "VPC",
+              "input": "VpcId"
+            },
+            {
+              "output": "PublicSubnets",
+              "input": "Subnets"
+            }
+          ]
+        },
+        {
+          "stack": "ThreeTierArch-ACM",
+          "mapping": [
+            {
+              "output": "SSLCertificateId",
+              "input": "SSLCertificateId"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

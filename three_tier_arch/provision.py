@@ -34,8 +34,8 @@ def resolve_dependencies(parameters_file, dependencies, client):
             for mapping in depend['mapping']:
                 if parameter['ParameterKey'] == mapping['input']:
                     for output in get_output_of_stack(depend['stack'], client):
-                        if output.key == mapping['output']:
-                            parameter['ParameterValue'] = output.value
+                        if output['OutputKey'] == mapping['output']:
+                            parameter['ParameterValue'] = output['OutputValue']
     return json.dumps(parameters_list)
 
 
@@ -47,9 +47,19 @@ def create_tier(stack_name, template_file, parameters_list, client):
             TemplateBody=template_string,
             Parameters=parameters_list)
         return stack_id
-    except Exception as ex:
-        print(str(ex))
-        raise ex
+    except Exception as e:
+        if type(e).__name__ == "AlreadyExistsException":
+            response = client.describe_stacks(
+                StackName=stack_name)
+            stacks = response['Stacks']
+            if len(stacks) == 1:
+                stack_id = stacks[0]['StackId']
+                return stack_id
+            else:
+                raise Exception('Stack with name[' + stack_name + "'] exists, but cannot be queried.")
+        else:
+            print("caught exception: "+str(e)+"!")
+            raise e
 
 
 def create_infrastructure(infrastructure_file, client):
@@ -71,7 +81,7 @@ def create_infrastructure(infrastructure_file, client):
             time.sleep(10)
             status = str(get_status_of_stack(stack, client))
             if status == "CREATE_FAILED" or status.startswith("ROLLBACK"):
-                print("ERROR Create Failed")
+                print("ERROR Create Failed with status: " + status + ", please manually remove this stack.")
                 return
             else:
                 print("Creating " + stack + " ... current status " + status)

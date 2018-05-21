@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template deploys a Cloud ELB Tier.
+Parameters:
+
+    ProjectName:
+        Description: An project name that will be prefixed to resource names
+        Type: String
+
+    EnvironmentName:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
+    Service:
+        Description: Please enter the Service name
+        Type: String
+
+    Role:
+        Description: Please enter the Role
+        Type: String
+
+    VpcId:
+        Description: Please enter the VCP Id
+        Type: String
+
+    Subnets:
+        Description: Please enter the Subnets
+        Type: CommaDelimitedList
+
+    WebServerPort:
+        Description: Please enter the Web server port
+        Type: String
+        Default: 80
+
+    IngressCidrIP:
+        Description: Please enter the Ingress CIDR IP
+        Type: String
+
+    HealthCheckUrl:
+        Description: Please enter the Health Check URL
+        Type: String
+
+    SSLCertificateId:
+        Description: Please enter the SSL Certificate Id
+        Type: String
+
+    Route53HostedZone:
+        Description: Please enter the Route 53 Hosted Zone
+        Type: String
+
+Resources:
+
+    LoadBalancer:
+      Type: AWS::ElasticLoadBalancing::LoadBalancer
+      Properties:
+        LoadBalancerName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName, !Ref Service, !Ref Role ]]
+        SecurityGroups: [ !Ref LoadBalancerSecurityGroup ]
+        Subnets: !Ref Subnets
+        CrossZone: "true"
+        Listeners:
+        - LoadBalancerPort: 80
+          Protocol: HTTP
+          InstancePort: !Ref WebServerPort
+          InstanceProtocol: HTTP
+        - LoadBalancerPort: 443
+          Protocol: HTTPS
+          InstancePort: !Ref WebServerPort
+          InstanceProtocol: HTTP
+          SSLCertificateId: !Ref SSLCertificateId
+        HealthCheck:
+          Target: !Join [ "", [ "HTTP:", !Ref WebServerPort, !Ref HealthCheckUrl ]]
+          HealthyThreshold: '3'
+          UnhealthyThreshold: '5'
+          Interval: '30'
+          Timeout: '25'
+        ConnectionDrainingPolicy:
+          Enabled: true
+          Timeout: 5
+        Tags:
+          - Key: Project
+            Value: !Ref ProjectName
+          - Key: Environment
+            Value: !Ref EnvironmentName
+          - Key: Service
+            Value: !Ref Service
+          - Key: Role
+            Value: !Ref Role
+
+    LoadBalancerSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: "Enable HTTP access on port 80"
+        VpcId: !Ref VpcId
+        SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: "443"
+          ToPort: "443"
+          CidrIp: !Ref IngressCidrIP
+        Tags:
+          - Key: Project
+            Value: !Ref ProjectName
+          - Key: Environment
+            Value: !Ref EnvironmentName
+          - Key: Service
+            Value: !Ref Service
+          - Key: Role
+            Value: !Ref Role
+
+    LoadBalancerDNSRecord:
+      Type: AWS::Route53::RecordSet
+      Properties:
+        HostedZoneName: !Ref Route53HostedZone
+        Comment: !Join [ "-", [ "HTTP:", !Ref ProjectName, !Ref EnvironmentName, !Ref Service, " DNS name"]]
+        Name: !Join [ ".", [ !Ref Service, Ref ProjectName, !Ref Route53HostedZone]]
+        Type: "A"
+        AliasTarget:
+          HostedZoneId:  !GetAtt [ "LoadBalancer", "CanonicalHostedZoneNameID"]
+          DNSName: !GetAtt [ "LoadBalancer", "CanonicalHostedZoneName"]
+
+Outputs:
+    URL:
+        Description: Load balancer url
+        Value: !Join [ "", [ "http://", !GetAtt [ "LoadBalancer", "DNSName"]  ]]
+
+    DNS:
+        Description: "DNS Name of Service"
+        Value: !Ref LoadBalancerDNSRecord
+
+    ElasticLoadBalancer:
+        Description: "Load balancer id"
+        Value: !Ref LoadBalancerDNSRecord
+
+    LoadBalancerSecurityGroup:
+        Description: "Load balancer security group id"
+        Value: !Ref LoadBalancerSecurityGroup

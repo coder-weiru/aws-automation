@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template that creates a SSLCertificate using Amazon Certificate Manager.
+Parameters:
+
+    DomainName:
+        Description: Please enter the Domain name
+        Type: String
+
+Resources:
+
+  SSLCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      DomainValidationOptions:
+      - DomainName: !Ref DomainName
+        ValidationDomain: !Ref DomainName
+
+Outputs:
+    SSLCertificateId:
+        Description: The SSL Certificate Id
+        Value: !Ref SSLCertificate

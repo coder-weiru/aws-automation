@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: '2010-09-09'
 Description: This template deploys a VPC, with a pair of public and private subnets spread across two Availability Zones. It deploys an Internet Gateway, with a default route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), and default routes for them in the private subnets.
 Parameters:
 
@@ -41,14 +42,14 @@ Resources:
             CidrBlock: !Ref VpcCIDR
             Tags:
                 - Key: Name
-                  Value: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]]
+                  Value: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]]
 
     InternetGateway:
         Type: AWS::EC2::InternetGateway
         Properties:
             Tags:
                 - Key: Name
-                  Value: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]]
+                  Value: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]]
 
 
     InternetGatewayAttachment:
@@ -68,7 +69,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${SubnetName} Public Subnet (AZ1)"
-                    - { SubnetName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { SubnetName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     PublicSubnet2:
         Type: AWS::EC2::Subnet
@@ -81,7 +82,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${SubnetName} Public Subnet (AZ2)"
-                    - { SubnetName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { SubnetName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     PrivateSubnet1:
         Type: AWS::EC2::Subnet
@@ -94,7 +95,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${SubnetName} Private Subnet (AZ1)"
-                    - { SubnetName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { SubnetName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     PrivateSubnet2:
         Type: AWS::EC2::Subnet
@@ -107,7 +108,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${SubnetName} Private Subnet (AZ2)"
-                    - { SubnetName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { SubnetName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     NatGateway1EIP:
         Type: AWS::EC2::EIP
@@ -141,7 +142,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${RouteTableName} Public Routes"
-                    - { RouteTableName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { RouteTableName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     DefaultPublicRoute:
         Type: AWS::EC2::Route
@@ -171,7 +172,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${RouteTableName} Private Routes (AZ1)"
-                    - { RouteTableName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { RouteTableName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     DefaultPrivateRoute1:
         Type: AWS::EC2::Route
@@ -194,7 +195,7 @@ Resources:
                 - Key: Name
                   Value: !Sub
                     - "${RouteTableName} Private Routes (AZ2)"
-                    - { RouteTableName: !Join [ ",", [ !Ref ProjectName, !Ref EnvironmentName ]] }
+                    - { RouteTableName: !Join [ "-", [ !Ref ProjectName, !Ref EnvironmentName ]] }
 
     DefaultPrivateRoute2:
         Type: AWS::EC2::Route
